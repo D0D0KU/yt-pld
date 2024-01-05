@@ -125,6 +125,7 @@ def upload_multiple_videos(login_data, video_list):
 
     try:
         uploader.login()
+        uploader.select_channel()
 
         for video_info in video_list:
             uploader.video_path = video_info['video_path']
