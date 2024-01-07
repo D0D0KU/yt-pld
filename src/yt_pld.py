@@ -77,8 +77,10 @@ class YouTubeUploader:
             video_input.send_keys(self.video_path)
 
             title = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//ytcp-video-title//ytcp-social-suggestion-input/div')))
-            title.clear()
-            title.send_keys(self.title_text)
+            
+            self.driver.execute_script("arguments[0].innerHTML = '{}'".format(self.title_text),title)
+            title.send_keys('.')
+            title.send_keys(Keys.BACKSPACE)
 
             description = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-video-description//ytcp-social-suggestion-input/div")))
             description.clear()
