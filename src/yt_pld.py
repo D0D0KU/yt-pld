@@ -99,11 +99,15 @@ class YouTubeUploader:
 
             radio_btn_public = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.NAME, "PUBLIC")))
             radio_btn_public.click()
-            
+
+            time.sleep(5)
             publish_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "done-button")))
             publish_btn.click()
 
-        except Exception as e:
+            close_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-uploads-still-processing-dialog//ytcp-button/div")))
+            close_btn.click()
+
+        except Exception as e: 
             print(e)
 
     def close_driver(self):
