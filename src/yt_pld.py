@@ -119,7 +119,19 @@ class YouTubeUploader:
         self.driver.quit()
 
 
+def title_validation(title_text: str):
+    if len(title_text) > 100:
+        text = title_text[:97] + '...'
+
+        return text
+    
+    else:
+        
+        return title_text
+
+
 def upload_multiple_videos(login_data: dict, video_list: list):
+    # YouTubeUploader class initialization
     uploader = YouTubeUploader(
         chrome_driver_path=login_data["chrome_driver_path"],
         email=login_data["email"],
@@ -130,12 +142,14 @@ def upload_multiple_videos(login_data: dict, video_list: list):
     )
 
     try:
+        # logging and selecting a channel for publication
         uploader.login()
         uploader.select_channel()
 
+        # publication
         for video_info in video_list:
             uploader.video_path = video_info['video_path']
-            uploader.title_text = video_info['title_text']
+            uploader.title_text = title_validation(video_info['title_text'])
             uploader.description_text = video_info['description_text']
             uploader.upload_video()
             time.sleep(5)
