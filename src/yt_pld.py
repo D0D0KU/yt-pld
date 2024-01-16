@@ -9,7 +9,7 @@ import time
 
 
 class YouTubeUploader:
-    def __init__(self, chrome_driver_path, email, password, channel_name, video_path, title_text, description_text, for_kids=False):
+    def __init__(self, chrome_driver_path, email, password, channel_name, video_path, title_text, description_text='', for_kids=False):
         self.chrome_driver_path = chrome_driver_path
         self.email = email
         self.password = password
@@ -82,9 +82,10 @@ class YouTubeUploader:
             title.send_keys('.')
             title.send_keys(Keys.BACKSPACE)
 
-            description = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-video-description//ytcp-social-suggestion-input/div")))
-            description.clear()
-            description.send_keys(self.description_text)
+            if self.description_text != '':
+                description = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-video-description//ytcp-social-suggestion-input/div")))
+                description.clear()
+                description.send_keys(self.description_text)
 
             if self.for_kids:
                 element_name = "VIDEO_MADE_FOR_KIDS_MFK"
@@ -105,6 +106,7 @@ class YouTubeUploader:
             time.sleep(5)
             publish_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "done-button")))
             publish_btn.click()
+            time.sleep(3)
 
             close_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-uploads-still-processing-dialog//ytcp-button/div")))
             close_btn.click()
@@ -117,16 +119,14 @@ class YouTubeUploader:
         self.driver.quit()
 
 
-def upload_multiple_videos(login_data, video_list):
+def upload_multiple_videos(login_data: dict, video_list: list):
     uploader = YouTubeUploader(
         chrome_driver_path=login_data["chrome_driver_path"],
         email=login_data["email"],
         password=login_data["password"],
         channel_name=login_data["channel_name"],
         video_path='',
-        title_text='',
-        description_text='',
-        for_kids=False
+        title_text=''
     )
 
     try:
