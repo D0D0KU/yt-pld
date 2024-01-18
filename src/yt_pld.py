@@ -6,6 +6,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import time
+import pickle
+import os
 
 
 class YouTubeUploader:
@@ -26,19 +28,62 @@ class YouTubeUploader:
         self.driver = webdriver.Chrome(service=self.service, options=self.options)
         self.driver.maximize_window()
 
+    def _saveCookies(self):
+        # Get and store cookies after login
+        cookies = self.driver.get_cookies()
+        # Store cookies in a file
+        pickle.dump(cookies, open('yt_cookies.pkl', 'wb'))
+
+
+    def _loadCookies(self):
+        # Check if cookies file exists
+        if 'yt_cookies.pkl' in os.listdir():
+            
+            self.driver.delete_all_cookies()
+
+            # Load cookies to a vaiable from a file
+            cookies = pickle.load(open('yt_cookies.pkl', 'rb'))
+
+            # Set stored cookies to maintain the session
+            for cookie in cookies:
+                self.driver.add_cookie(cookie)
+
+            self.driver.refresh() # Refresh Browser after login
+        else:
+            print('No cookies file found')
+
+    def _login_without_cookies(self):
+        self.driver.get('https://accounts.google.com/InteractiveLogin/signinchooser?continue=https%3A%2F%2Fstudio.youtube.com')
+
+        email_input = self.driver.find_element(By.ID, 'identifierId')
+        email_input.clear()
+        email_input.send_keys(self.email)
+        email_input.send_keys(Keys.ENTER)
+
+        password_input = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.NAME, "Passwd")))
+        password_input.clear()
+        password_input.send_keys(self.password)
+        password_input.send_keys(Keys.ENTER)
+        time.sleep(5)
+        self._saveCookies()
+
+
+    def _login_with_cookies(self):
+        self.driver.get('https://www.youtube.com')
+
+        self._loadCookies()
+
+        self.driver.get('https://studio.youtube.com')
+
+
     def login(self):
         try:
-            self.driver.get('https://accounts.google.com/InteractiveLogin/signinchooser?continue=https%3A%2F%2Fstudio.youtube.com')
+            if 'yt_cookies.pkl' in os.listdir():
+                self._login_with_cookies()
+            else:
+                self._login_without_cookies()
+            time.sleep(2)
 
-            email_input = self.driver.find_element(By.ID, 'identifierId')
-            email_input.clear()
-            email_input.send_keys(self.email)
-            email_input.send_keys(Keys.ENTER)
-
-            password_input = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.NAME, "Passwd")))
-            password_input.clear()
-            password_input.send_keys(self.password)
-            password_input.send_keys(Keys.ENTER)
         except Exception as e:
             print(e)
 
