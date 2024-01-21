@@ -192,7 +192,8 @@ def upload_multiple_videos(login_data: dict, video_list: list):
         uploader.select_channel()
 
         # publication
-        for video_info in video_list:
+        while video_list:
+            video_info = video_list[0]
             video_info: dict
             
             uploader.video_path = video_info['video_path']
@@ -202,7 +203,9 @@ def upload_multiple_videos(login_data: dict, video_list: list):
             if description_text:
                 uploader.description_text = description_text
             uploader.upload_video()
+            del video_list[0]
             time.sleep(5)
 
     finally:
         uploader.close_driver()
+        return video_list

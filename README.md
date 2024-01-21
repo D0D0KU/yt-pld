@@ -2,7 +2,6 @@
 ### This app helps you automate uploading videos to your YouTube channel. Selenium is used for uploading.
 
 # Installation
-### To install, run the following command in your terminal:
 
     pip install yt-pld
 
@@ -40,3 +39,17 @@
 `email` - your email to log in to your google account, to which your YouTube channel is linked to\
 `password` - password for the google account to which your YouTube channel is linked\
 `channel_name` - name of the channel you want to upload video to\
+
+The `upload_multiple_videos` function will return unuploaded videos if an error occurs during upload. You can make this fault tolerant by handling it in the following way:
+
+    response = True
+    while response:
+        response = upload_multiple_videos(video_list=video_list, login_data=login_data)
+
+You can also limit the number of repeated downloads by setting a counter:
+
+    response = True
+    counter = 3
+    while response and counter:
+        response = upload_multiple_videos(video_list=video_list, login_data=login_data)
+        counter -= 1
