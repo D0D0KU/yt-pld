@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException, NoSuchElementException
 
 import time
 import pickle
@@ -111,55 +112,51 @@ class YouTubeUploader:
             print(e)
 
     def upload_video(self):
-        try:
-            create_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "create-icon")))
-            create_btn.click()
+        create_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "create-icon")))
+        create_btn.click()
 
-            add_video = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "text-item-0")))
-            add_video.click()
+        add_video = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "text-item-0")))
+        add_video.click()
 
-            video_input = self.driver.find_element(By.CSS_SELECTOR, "input[type='file']")
-            video_input.send_keys(self.video_path)
+        video_input = self.driver.find_element(By.CSS_SELECTOR, "input[type='file']")
+        video_input.send_keys(self.video_path)
 
-            title = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//ytcp-video-title//ytcp-social-suggestion-input/div')))
+        title = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//ytcp-video-title//ytcp-social-suggestion-input/div')))
+        # Convert text to send emoji because the web driver does not recognize emoji 
+        self.driver.execute_script("arguments[0].innerHTML = '{}'".format(self.title_text),title)
+        title.send_keys('.')
+        title.send_keys(Keys.BACKSPACE)
+
+        if self.description_text != '':
+            description = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-video-description//ytcp-social-suggestion-input/div")))
             # Convert text to send emoji because the web driver does not recognize emoji 
-            self.driver.execute_script("arguments[0].innerHTML = '{}'".format(self.title_text),title)
-            title.send_keys('.')
-            title.send_keys(Keys.BACKSPACE)
+            self.driver.execute_script("arguments[0].innerHTML = '{}'".format(self.description_text),description)
+            description.send_keys('.')
+            description.send_keys(Keys.BACKSPACE)
 
-            if self.description_text != '':
-                description = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-video-description//ytcp-social-suggestion-input/div")))
-                # Convert text to send emoji because the web driver does not recognize emoji 
-                self.driver.execute_script("arguments[0].innerHTML = '{}'".format(self.description_text),description)
-                description.send_keys('.')
-                description.send_keys(Keys.BACKSPACE)
+        if self.for_kids:
+            element_name = "VIDEO_MADE_FOR_KIDS_MFK"
+        else:
+            element_name = "VIDEO_MADE_FOR_KIDS_NOT_MFK"
 
-            if self.for_kids:
-                element_name = "VIDEO_MADE_FOR_KIDS_MFK"
-            else:
-                element_name = "VIDEO_MADE_FOR_KIDS_NOT_MFK"
+        radio_btn_for_kids = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.NAME, element_name)))
+        radio_btn_for_kids.click()
 
-            radio_btn_for_kids = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.NAME, element_name)))
-            radio_btn_for_kids.click()
+        next = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "next-button")))
+        next.click()
+        next.click()
+        next.click()
 
-            next = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "next-button")))
-            next.click()
-            next.click()
-            next.click()
+        radio_btn_public = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.NAME, "PUBLIC")))
+        radio_btn_public.click()
 
-            radio_btn_public = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.NAME, "PUBLIC")))
-            radio_btn_public.click()
+        time.sleep(5)
+        publish_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "done-button")))
+        publish_btn.click()
+        time.sleep(3)
 
-            time.sleep(5)
-            publish_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.ID, "done-button")))
-            publish_btn.click()
-            time.sleep(3)
-
-            close_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-uploads-still-processing-dialog//ytcp-button/div")))
-            close_btn.click()
-
-        except Exception as e: 
-            print(e)
+        close_btn = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-uploads-still-processing-dialog//ytcp-button/div")))
+        close_btn.click()
 
     def close_driver(self):
         self.driver.close()
@@ -205,7 +202,7 @@ def upload_multiple_videos(login_data: dict, video_list: list):
             uploader.upload_video()
             del video_list[0]
             time.sleep(5)
-
+            
     finally:
         uploader.close_driver()
         return video_list
