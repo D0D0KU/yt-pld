@@ -11,7 +11,7 @@ import os
 
 
 class YouTubeUploader:
-    def __init__(self, chrome_driver_path, email, password, channel_name, video_path, title_text, description_text='', for_kids=False):
+    def __init__(self, chrome_driver_path, email, password, channel_name, video_path='', title_text='', description_text='', for_kids=False):
         self.chrome_driver_path = chrome_driver_path
         self.email = email
         self.password = password
@@ -122,15 +122,17 @@ class YouTubeUploader:
             video_input.send_keys(self.video_path)
 
             title = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//ytcp-video-title//ytcp-social-suggestion-input/div')))
-            
+            # Convert text to send emoji because the web driver does not recognize emoji 
             self.driver.execute_script("arguments[0].innerHTML = '{}'".format(self.title_text),title)
             title.send_keys('.')
             title.send_keys(Keys.BACKSPACE)
 
             if self.description_text != '':
                 description = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//ytcp-video-description//ytcp-social-suggestion-input/div")))
-                description.clear()
-                description.send_keys(self.description_text)
+                # Convert text to send emoji because the web driver does not recognize emoji 
+                self.driver.execute_script("arguments[0].innerHTML = '{}'".format(self.description_text),description)
+                description.send_keys('.')
+                description.send_keys(Keys.BACKSPACE)
 
             if self.for_kids:
                 element_name = "VIDEO_MADE_FOR_KIDS_MFK"
@@ -181,9 +183,7 @@ def upload_multiple_videos(login_data: dict, video_list: list):
         chrome_driver_path=login_data["chrome_driver_path"],
         email=login_data["email"],
         password=login_data["password"],
-        channel_name=login_data["channel_name"],
-        video_path='',
-        title_text=''
+        channel_name=login_data["channel_name"]
     )
 
     try:
@@ -193,9 +193,14 @@ def upload_multiple_videos(login_data: dict, video_list: list):
 
         # publication
         for video_info in video_list:
+            video_info: dict
+            
             uploader.video_path = video_info['video_path']
             uploader.title_text = title_validation(video_info['title_text'])
-            uploader.description_text = video_info['description_text']
+
+            description_text = video_info.get('description_text')
+            if description_text:
+                uploader.description_text = description_text
             uploader.upload_video()
             time.sleep(5)
 
