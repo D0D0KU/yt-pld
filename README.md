@@ -28,7 +28,7 @@ login_data = {
 
 upload_multiple_videos(login_data, video_list)
 ```
-## Description of parameters to be transferred
+### Description of parameters to be transferred
 `video_list` - pass to this list as many dictionaries with video data as many videos you need to upload (currently you can upload a maximum of 10 videos per day)\
 `video_path` - your path to the video you want to upload to your channel\
 `title_text` - title for the video\
@@ -40,6 +40,7 @@ upload_multiple_videos(login_data, video_list)
 `password` - password for the google account to which your YouTube channel is linked\
 `channel_name` - name of the channel you want to upload video to
 
+# Fault tolerance
 The `upload_multiple_videos` function will return unuploaded videos if an error occurs during upload. You can make this fault tolerant by handling it in the following way:
 ```python
 response = True
